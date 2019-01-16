@@ -38,7 +38,7 @@ parameters:
     description: Port of the application
     required: true
     displayName: Application Port
-objects:
+items:
   -
     apiVersion: v1
     kind: DeploymentConfig
