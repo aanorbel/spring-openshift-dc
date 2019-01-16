@@ -1,6 +1,6 @@
 # Application template.
 apiVersion: v1
-kind: Template
+kind: List
 metadata:
   name: se-service-template-app-template
   namespace: test
@@ -21,15 +21,15 @@ parameters:
     required: true
     displayName: Application Name
   -
-    name: SECRET_REF
-    value: se-service-template-ds-secret-ref
-    description: Name of the DataSource Secret Reference
+    name: DATABASE_HOST
+    value: mysql
+    description: Name of the database host
     required: true
-    displayName: "*** PLEASE DO NOT CHANGE THIS ***"
+    displayName: Database Host
   -
-    name: REG_SECRET_REF
-    value: reg-secret-ref
-    description: Name of the Registry Secret Reference
+    name: SECRET_REF
+    value: mysql-persistent-8n2hx-credentials-v8pwh 
+    description: Name of the DataSource Secret Reference
     required: true
     displayName: "*** PLEASE DO NOT CHANGE THIS ***"
   -
@@ -86,17 +86,29 @@ objects:
             - name: SPRING_PROFILES_ACTIVE
               value: prod,swagger
             - name: SPRING_DATASOURCE_URL
-              value: jdbc:mysql://${APPLICATION_NAME}-mysqldb/se-service-template?useUnicode=true&characterEncoding=utf8&useSSL=false
+              value: jdbc:mysql://${DATABASE_HOST}/se-service-template?useUnicode=true&characterEncoding=utf8&useSSL=false
             - name: SPRING_DATASOURCE_USERNAME
               valueFrom:
                 secretKeyRef:
                   name: ${SECRET_REF}
-                  key: database-user
+                  key: username
             - name: SPRING_DATASOURCE_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: ${SECRET_REF}
-                  key: database-password
+                  key: password
+            - name: SECURITY_FILTER_DATASOURCE_URL
+              value: jdbc:mysql://${DATABASE_HOST}/se-security-filter?useUnicode=true&characterEncoding=utf8&useSSL=false
+            - name: SECURITY_FILTER_DATASOURCE_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: ${SECRET_REF}
+                  key: username
+            - name: SECURITY_FILTER_DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: ${SECRET_REF}
+                  key: password
             ports:
             - name: http
               containerPort: "${APP_PORT}"
