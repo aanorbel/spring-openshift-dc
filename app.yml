@@ -80,7 +80,7 @@ objects:
         spec:
           containers:
           - name: ${APPLICATION_NAME}
-            image: jenkins/se-service-template
+            image: 81.169.198.21:33354/jenkins/jenkins-spring-build
             imagePullPolicy: IfNotPresent
             env:
             - name: SPRING_PROFILES_ACTIVE
