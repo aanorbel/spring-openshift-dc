@@ -37,7 +37,7 @@ items:
         spec:
           containers:
           - name: se-service-template
-            image: docker.io/springcloud/eureka
+            image: docker.io/appuio/example-spring-boot
             imagePullPolicy: IfNotPresent
             env:
             - name: SPRING_PROFILES_ACTIVE
