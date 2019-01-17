@@ -13,37 +13,12 @@ metadata:
 labels:
   app: se-service-template-app
   createdBy: SumelongEnterprise-Team
-parameters:
-  -
-    name: APPLICATION_NAME
-    value: se-service-template
-    description: Name of the application
-    required: true
-    displayName: Application Name
-  -
-    name: DATABASE_HOST
-    value: mysql
-    description: Name of the database host
-    required: true
-    displayName: Database Host
-  -
-    name: SECRET_REF
-    value: mysql-persistent-8n2hx-credentials-v8pwh 
-    description: Name of the DataSource Secret Reference
-    required: true
-    displayName: "*** PLEASE DO NOT CHANGE THIS ***"
-  -
-    name: APP_PORT
-    value: "8080"
-    description: Port of the application
-    required: true
-    displayName: Application Port
 items:
   -
     apiVersion: v1
     kind: DeploymentConfig
     metadata:
-      name: ${APPLICATION_NAME}
+      name: se-service-template
     spec:
       strategy:
         type: Rolling
@@ -62,7 +37,7 @@ items:
                 - |
                     while true
                     do
-                      rt=$(nc -z -w 1 ${APPLICATION_NAME}-mysqldb 80)
+                      rt=$(nc -z -w 1 mysql 80)
                       if [ $? -eq 0 ]; then
                         echo "DB is UP"
                         break
@@ -70,74 +45,74 @@ items:
                       echo "DB is not yet reachable;sleep for 10s before retry"
                       sleep 10
                     done
-              containerName: ${APPLICATION_NAME}
+              containerName: se-service-template
         resources:
       replicas: "1"
       template:
         metadata:
           labels:
-            app: ${APPLICATION_NAME}
+            app: se-service-template
         spec:
           containers:
-          - name: ${APPLICATION_NAME}
-            image: 81.169.198.21:33354/jenkins/jenkins-spring-build
+          - name: se-service-template
+            image: docker.io/springcloud/eureka
             imagePullPolicy: IfNotPresent
             env:
             - name: SPRING_PROFILES_ACTIVE
               value: prod,swagger
             - name: SPRING_DATASOURCE_URL
-              value: jdbc:mysql://${DATABASE_HOST}/se-service-template?useUnicode=true&characterEncoding=utf8&useSSL=false
+              value: jdbc:mysql://mysql/se-service-template?useUnicode=true&characterEncoding=utf8&useSSL=false
             - name: SPRING_DATASOURCE_USERNAME
               valueFrom:
                 secretKeyRef:
-                  name: ${SECRET_REF}
+                  name: mysql-persistent-8n2hx-credentials-v8pwh
                   key: username
             - name: SPRING_DATASOURCE_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: ${SECRET_REF}
+                  name: mysql-persistent-8n2hx-credentials-v8pwh
                   key: password
             - name: SECURITY_FILTER_DATASOURCE_URL
-              value: jdbc:mysql://${DATABASE_HOST}/se-security-filter?useUnicode=true&characterEncoding=utf8&useSSL=false
+              value: jdbc:mysql://mysql/se-security-filter?useUnicode=true&characterEncoding=utf8&useSSL=false
             - name: SECURITY_FILTER_DATASOURCE_USERNAME
               valueFrom:
                 secretKeyRef:
-                  name: ${SECRET_REF}
+                  name: mysql-persistent-8n2hx-credentials-v8pwh
                   key: username
             - name: SECURITY_FILTER_DATASOURCE_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: ${SECRET_REF}
+                  name: mysql-persistent-8n2hx-credentials-v8pwh
                   key: password
             ports:
             - name: http
-              containerPort: "${APP_PORT}"
+              containerPort: "8080"
   -
     apiVersion: v1
     kind: Service
     metadata:
       annotations:
         service.alpha.openshift.io/dependencies: '[{
-          "name":"${APPLICATION_NAME}-mysqldb", "namespace": "", "kind": "Service"}]'
+          "name":"mysql", "namespace": "", "kind": "Service"}]'
       labels:
-        app: ${APPLICATION_NAME}
-      name: ${APPLICATION_NAME}
+        app: se-service-template
+      name: se-service-template
     spec:
       selector:
-        app: ${APPLICATION_NAME}
+        app: se-service-template
       type: LoadBalancer
       ports:
       - name: http
-        port: "${APP_PORT}"
+        port: "8080"
   -
     apiVersion: v1
     kind: Route
     metadata:
-      name: ${APPLICATION_NAME}
+      name: se-service-template
     spec:
       to:
         kind: Service
-        name: ${APPLICATION_NAME}
+        name: se-service-template
         weight: "100"
       port:
         targetPort: "http"
