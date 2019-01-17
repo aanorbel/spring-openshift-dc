@@ -28,24 +28,6 @@ items:
           timeoutSeconds: 600
           maxUnavailable: 25%
           maxSurge: 25%
-          pre:
-            failurePolicy: ignore
-            execNewPod:
-              command:
-                - "/bin/sh"
-                - "-c"
-                - |
-                    while true
-                    do
-                      rt=$(nc -z -w 1 mysql 80)
-                      if [ $? -eq 0 ]; then
-                        echo "DB is UP"
-                        break
-                      fi
-                      echo "DB is not yet reachable;sleep for 10s before retry"
-                      sleep 10
-                    done
-              containerName: se-service-template
         resources:
       replicas: "1"
       template:
