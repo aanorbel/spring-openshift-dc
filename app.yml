@@ -1,6 +1,6 @@
 # Application template.
 apiVersion: v1
-kind: List
+kind: Template
 metadata:
   name: se-service-template-app-template
   namespace: test
