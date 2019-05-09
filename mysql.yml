@@ -2,31 +2,28 @@
 apiVersion: v1
 kind: Template
 metadata:
-  name: se-service-template-mysqldb-template
-  namespace: test
+  name: mysql-db
   annotations:
     description: This template defines objects that are required to spin up a mysqldb pod
-    tags: db, se-service-template-mysqldb ,persistent  
-    openshift.io/display-name: se-service-template-mysqldb-template
+    tags: db, mysql-db ,persistent  
+    openshift.io/display-name: mysql-db
     openshift.io/long-description: "This template provides objects that are required to spin up a mysqldb pod. The database is stored on persistent storage, so any restart of the service will not cause any impact to the data.
      Please make sure you have provisioned PVs (Persistent Volumes) before using this template. "
-    openshift.io/provider-display-name: SumelongEnterprise-OpenShift
 labels:
-  app: se-service-template-mysqldb
-  createdBy: SumelongEnterprise-Team
+  app: mysql-db
 parameters:
   -
     name: APPLICATION_NAME
-    value: se-service-template-mysqldb
+    value: mysql-db
     description: Name of the application
     required: true
     displayName: Application Name
   -
     name: SECRET_REF
-    value: se-service-template-ds-secret-ref
+    value: mysql-dbt-ref
     description: Name of the secret reference
     required: true
-    displayName: "*** PLEASE DO NOT CHANGE THIS ***"
+    displayName: "Name of the secret reference"
   -
     name: MYSQL_USER
     displayName: MySQL Connection Username
@@ -50,7 +47,7 @@ parameters:
     required: true
   -
     name: DATABASE_NAME
-    value: se-service-template
+    value: default
     displayName: MySQL DB Name
     description: Name of the MySQL database accessed.
     required: true
@@ -89,16 +86,6 @@ objects:
       labels:
         app: ${APPLICATION_NAME}
     spec:
-# This is to define the deployment strategy (either be Rolling or Recreate)
-#     strategy:
-#       type: Rolling
-#       rollingParams:
-#         updatePeriodSeconds: 1
-#         intervalSeconds: 1
-#         timeoutSeconds: 600
-#         maxUnavailable: 25%
-#         maxSurge: 25%
-#       resources:
       triggers:
         -
           type: ConfigChange
@@ -118,10 +105,6 @@ objects:
           - name: ${APPLICATION_NAME}
             image: mysql:5.7.20
             env:
-#            - name: MYSQL_USER
-#              value: root
-#            - name: MYSQL_ALLOW_EMPTY_PASSWORD
-#              value: 'yes'
             - name: MYSQL_DATABASE
               value: ${DATABASE_NAME}
             - name: MYSQL_USER
@@ -139,30 +122,8 @@ objects:
                 secretKeyRef:
                   name: ${SECRET_REF}
                   key: database-root-password
-    #        command:
-    #        - mysqld
-    #        - --lower_case_table_names=1
-    #        - --skip-ssl
-    #        - --character_set_server=utf8mb4
-    #        - --explicit_defaults_for_timestamp
             ports:
             - containerPort: 3306
-              protocol: TCP
-            readinessProbe:
-              timeoutSeconds: 1
-              initialDelaySeconds: 5
-              exec:
-                command:
-                - "/bin/sh"
-                - "-i"
-                - "-c"
-                - MYSQL_PWD="$MYSQL_PASSWORD" mysql -h 127.0.0.1 -u $MYSQL_USER -D $MYSQL_DATABASE
-                  -e 'SELECT 1'
-            livenessProbe:
-              timeoutSeconds: 1
-              initialDelaySeconds: 30
-              tcpSocket:
-                port: 3306
             volumeMounts:
             - name: ${APPLICATION_NAME}-data
               mountPath: /var/lib/mysql
@@ -184,7 +145,6 @@ objects:
           protocol: TCP
           port: 3306
           targetPort: 3306
-        # No need to mention the port explicitly as each pod and service gets assigned with an IP, a service within a pod is accessible/routable at :80
         -
           name: mysqldb
           protocol: TCP
